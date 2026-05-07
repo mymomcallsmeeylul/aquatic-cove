@@ -12,9 +12,10 @@ const WATER_CHARS = ' .,_-~cC/';
 const TPI = 2 * Math.PI;
 
 const SCHEDULE_TRIGGERS = [
-  'schedule','plan','visit','swim','come by','come down',
-  'invite','bring','tomorrow','this weekend','next week',
-  'what time','when should',"let's go",'meet up','join me',
+  'schedule','make a plan','come by','come down',
+  'tomorrow','this weekend','next week',
+  'when should',"let's go",'meet up','join me',
+  'set a time','book a swim','plan a swim',
 ];
 
 function hasScheduleIntent(text: string): boolean {
@@ -397,8 +398,19 @@ export default function App() {
     } catch (err) {
       history.current.pop();
       const msg = err instanceof Error ? err.message : 'network error';
-      setStatusText(msg);
+      const isAuthErr = msg.toLowerCase().includes('auth') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('401');
+      setStatusText(isAuthErr ? 'api key error — check vercel env vars' : msg);
       setStatusClass('error');
+      if (isAuthErr) return; // don't retry on auth failure
+      // Show error briefly then resume
+      if (!scheduleOpenRef.current) {
+        setTimeout(() => {
+          voiceState.current = 'listening';
+          setListening(true);
+          startListening();
+        }, 4000);
+      }
+      return;
     }
     // Only resume mic if schedule panel is not open
     if (!scheduleOpenRef.current) {
