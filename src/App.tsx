@@ -518,33 +518,47 @@ export default function App() {
     s.fadeTimer = 6;
   }, []);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
+  // Touch handlers attached as non-passive native listeners so preventDefault()
+  // actually works on iOS Safari (React synthetic touch events are passive).
+  useEffect(() => {
+    const el = cvRef.current;
+    if (!el) return;
     const s = simState.current;
-    const t = e.touches[0];
-    s.md = true;
-    [s.mx, s.my] = toFluid(t.clientX, t.clientY);
-    s.pmx = s.mx; s.pmy = s.my;
-  }, [toFluid]);
 
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const s = simState.current;
-    const t = e.touches[0];
-    s.pmx = s.mx; s.pmy = s.my;
-    [s.mx, s.my] = toFluid(t.clientX, t.clientY);
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      const nx = s.mx + dx, ny = s.my + dy;
-      if (nx > 0 && nx <= N && ny > 0 && ny <= N)
-        s.glowMap[IX(nx, ny)] += 1.8 * Math.exp(-(dx * dx + dy * dy) * 1.2);
-    }
-  }, [toFluid]);
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      s.md = true;
+      [s.mx, s.my] = toFluid(t.clientX, t.clientY);
+      s.pmx = s.mx; s.pmy = s.my;
+    };
 
-  const onTouchEnd = useCallback(() => {
-    const s = simState.current;
-    s.md = false;
-    s.fadeTimer = 6;
-  }, []);
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      s.pmx = s.mx; s.pmy = s.my;
+      [s.mx, s.my] = toFluid(t.clientX, t.clientY);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = s.mx + dx, ny = s.my + dy;
+        if (nx > 0 && nx <= N && ny > 0 && ny <= N)
+          s.glowMap[IX(nx, ny)] += 1.8 * Math.exp(-(dx * dx + dy * dy) * 1.2);
+      }
+    };
+
+    const onTouchEnd = () => {
+      s.md = false;
+      s.fadeTimer = 6;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, [toFluid]);
 
   // ── Animation loop ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -624,9 +638,6 @@ export default function App() {
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
       />
       <div className={`response-text${responseVis ? ' visible' : ''}`}>{responseText}</div>
       {!scheduleOpen && (
