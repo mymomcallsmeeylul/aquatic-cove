@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aquatic Cove</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:390px; height:100vh; height:100dvh; overflow:hidden; background:#04101e; }
+body { position:relative; }
+#response, #status, #entry-title, #entry-sub { font-family:'Instrument Serif',serif; font-style:italic; }
+#response {
+  position:absolute; top:32px; left:0; right:0; z-index:15;
+  padding:0 28px; text-align:center; font-size:17px;
+  color:transparent; line-height:1.55; white-space:pre-wrap;
+  transition:color 0.9s ease; pointer-events:none;
+}
+#response.visible { color:rgba(255,255,255,0.92); }
+#status {
+  position:absolute; top:8px; left:0; right:0; text-align:center; z-index:15;
+  font-size:11px; color:rgba(255,255,255,0.25); transition:color 0.4s ease;
+  pointer-events:none;
+}
+@keyframes listening-glow {
+  0%,100% { text-shadow:0 0 6px rgba(100,220,255,0.25); opacity:0.55; }
+  50%      { text-shadow:0 0 14px rgba(100,220,255,0.9),0 0 28px rgba(100,220,255,0.35); opacity:0.9; }
+}
+#status.listening { color:rgba(100,220,255,0.55); animation:listening-glow 2.5s ease-in-out infinite; }
+#status.error { color:rgba(255,160,120,0.85); animation:none; }
+#entry {
+  position:absolute; top:0; left:0; width:390px; height:100vh; height:100dvh; z-index:20;
+  background:rgba(4,16,30,0.82);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  cursor:pointer; transition:opacity 0.8s ease;
+}
+#entry.hidden { opacity:0; pointer-events:none; }
+#entry-title { font-size:22px; color:rgba(255,255,255,0.85); }
+#entry-sub   { font-size:13px; color:rgba(255,255,255,0.32); }
+#cv {
+  position:absolute; bottom:0; left:0;
+  width:390px;
+  line-height:1.0; font-size:10px; letter-spacing:2px;
+  padding:0 8px;
+  white-space:pre; cursor:crosshair; user-select:none;
+  font-family:monospace; background:transparent; overflow:hidden;
+}
+</style>
+</head>
+<body>
+<div id="cv"></div>
+<div id="response"></div>
+<div id="status"></div>
+<div id="settings-btn" style="position:absolute;top:10px;right:12px;z-index:25;opacity:0.35;cursor:pointer;transition:opacity 0.3s ease;" onmouseenter="this.style.opacity='0.75'" onmouseleave="this.style.opacity='0.35'">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1.52192 11.8052C1.52192 10.5268 1.68764 9.35153 2.01907 8.27942C2.3539 7.20394 2.83076 6.21469 3.44968 5.31169H4.50487C4.26136 5.64651 4.03308 6.05912 3.82001 6.54951C3.61032 7.03653 3.426 7.57258 3.26705 8.15767C3.10809 8.73938 2.98295 9.34138 2.89164 9.96368C2.80371 10.586 2.75974 11.1998 2.75974 11.8052C2.75974 12.6101 2.83753 13.4269 2.9931 14.2555C3.14867 15.0841 3.35836 15.8535 3.62216 16.5637C3.88596 17.2739 4.18019 17.8523 4.50487 18.2987H3.44968C2.83076 17.3957 2.3539 16.4081 2.01907 15.336C1.68764 14.2606 1.52192 13.0836 1.52192 11.8052ZM11.7099 17.1623C10.9726 17.1623 10.2793 17.0237 9.62992 16.7463C8.98395 16.469 8.41408 16.0852 7.9203 15.5948C7.42991 15.101 7.04436 14.5311 6.76365 13.8851C6.48632 13.2392 6.34935 12.5459 6.35273 11.8052C6.35611 11.0645 6.49647 10.3712 6.77379 9.72524C7.0545 9.07927 7.44005 8.51109 7.93045 8.0207C8.42084 7.52692 8.98903 7.14137 9.63499 6.86404C10.281 6.58672 10.9726 6.44805 11.7099 6.44805C12.4505 6.44805 13.1439 6.58672 13.7898 6.86404C14.4392 7.14137 15.0074 7.52692 15.4944 8.0207C15.9848 8.51109 16.3686 9.07927 16.646 9.72524C16.9233 10.3712 17.0636 11.0645 17.067 11.8052C17.0704 12.5459 16.9334 13.2392 16.6561 13.8851C16.3788 14.5311 15.9949 15.101 15.5045 15.5948C15.0141 16.0852 14.4442 16.469 13.7949 16.7463C13.1455 17.0237 12.4505 17.1623 11.7099 17.1623ZM11.7099 15.9854C12.2882 15.9854 12.831 15.8772 13.3383 15.6607C13.8456 15.4443 14.2904 15.145 14.6725 14.7628C15.0547 14.3806 15.354 13.9376 15.5705 13.4336C15.7869 12.9263 15.8934 12.3852 15.8901 11.8103C15.8867 11.2319 15.7768 10.6891 15.5603 10.1818C15.3439 9.67451 15.0446 9.22978 14.6624 8.84761C14.2802 8.46544 13.8372 8.16613 13.3332 7.94968C12.8293 7.73323 12.2882 7.625 11.7099 7.625C11.1349 7.625 10.5955 7.73323 10.0916 7.94968C9.58765 8.16613 9.1446 8.46713 8.76243 8.85268C8.38026 9.23485 8.07926 9.67959 7.85943 10.1869C7.64298 10.6908 7.53306 11.2319 7.52968 11.8103C7.5263 12.3818 7.63283 12.9213 7.84928 13.4286C8.06573 13.9325 8.36504 14.3755 8.74721 14.7577C9.13276 15.1399 9.5775 15.4409 10.0814 15.6607C10.5887 15.8772 11.1315 15.9854 11.7099 15.9854ZM21.9004 11.8052C21.9004 13.0836 21.733 14.2606 21.3981 15.336C21.0667 16.4081 20.5915 17.3957 19.9726 18.2987H18.9174C19.1609 17.9639 19.3875 17.5513 19.5972 17.0609C19.8103 16.5739 19.9963 16.0395 20.1552 15.4578C20.3142 14.8727 20.4376 14.269 20.5256 13.6467C20.6169 13.021 20.6625 12.4072 20.6625 11.8052C20.6625 11.0003 20.5848 10.1835 20.4292 9.35491C20.2736 8.52631 20.0639 7.7569 19.8001 7.04667C19.5363 6.33644 19.2421 5.75812 18.9174 5.31169H19.9726C20.5915 6.21469 21.0667 7.20394 21.3981 8.27942C21.733 9.35153 21.9004 10.5268 21.9004 11.8052Z" fill="white"/>
+    <path d="M12.1948 1.52192C13.4732 1.52192 14.6485 1.68764 15.7206 2.01907C16.7961 2.3539 17.7853 2.83076 18.6883 3.44968V4.50487C18.3535 4.26136 17.9409 4.03308 17.4505 3.82001C16.9635 3.61032 16.4274 3.426 15.8423 3.26705C15.2606 3.10809 14.6586 2.98295 14.0363 2.89164C13.414 2.80371 12.8002 2.75974 12.1948 2.75974C11.3899 2.75974 10.5731 2.83753 9.74452 2.9931C8.91592 3.14867 8.14651 3.35836 7.43628 3.62216C6.72606 3.88596 6.14773 4.18019 5.7013 4.50487V3.44968C6.6043 2.83076 7.59186 2.3539 8.66396 2.01907C9.73945 1.68764 10.9164 1.52192 12.1948 1.52192ZM6.83766 11.7099C6.83766 10.9726 6.97633 10.2793 7.25365 9.62992C7.53098 8.98395 7.91484 8.41408 8.40524 7.9203C8.89901 7.42991 9.46889 7.04436 10.1149 6.76365C10.7608 6.48632 11.4541 6.34935 12.1948 6.35273C12.9355 6.35611 13.6288 6.49647 14.2748 6.77379C14.9207 7.0545 15.4889 7.44005 15.9793 7.93045C16.4731 8.42084 16.8586 8.98903 17.136 9.63499C17.4133 10.281 17.5519 10.9726 17.5519 11.7099C17.5519 12.4505 17.4133 13.1439 17.136 13.7898C16.8586 14.4392 16.4731 15.0074 15.9793 15.4944C15.4889 15.9848 14.9207 16.3686 14.2748 16.646C13.6288 16.9233 12.9355 17.0636 12.1948 17.067C11.4541 17.0704 10.7608 16.9334 10.1149 16.6561C9.46889 16.3788 8.89901 15.9949 8.40524 15.5045C7.91484 15.0141 7.53098 14.4442 7.25365 13.7949C6.97633 13.1455 6.83766 12.4505 6.83766 11.7099ZM8.01461 11.7099C8.01461 12.2882 8.12284 12.831 8.33929 13.3383C8.55574 13.8456 8.85505 14.2904 9.23722 14.6725C9.61939 15.0547 10.0624 15.354 10.5664 15.5705C11.0737 15.7869 11.6148 15.8934 12.1897 15.8901C12.7681 15.8867 13.3109 15.7768 13.8182 15.5603C14.3255 15.3439 14.7702 15.0446 15.1524 14.6624C15.5346 14.2802 15.8339 13.8372 16.0503 13.3332C16.2668 12.8293 16.375 12.2882 16.375 11.7099C16.375 11.1349 16.2668 10.5955 16.0503 10.0916C15.8339 9.58765 15.5329 9.1446 15.1473 8.76243C14.7652 8.38026 14.3204 8.07926 13.8131 7.85943C13.3092 7.64298 12.7681 7.53306 12.1897 7.52968C11.6182 7.5263 11.0787 7.63283 10.5714 7.84928C10.0675 8.06573 9.62446 8.36504 9.24229 8.74721C8.86012 9.13276 8.55912 9.5775 8.33929 10.0814C8.12284 10.5887 8.01461 11.1315 8.01461 11.7099ZM12.1948 21.9004C10.9164 21.9004 9.73945 21.733 8.66396 21.3981C7.59186 21.0667 6.6043 20.5915 5.7013 19.9726V18.9174C6.03612 19.1609 6.44873 19.3875 6.93912 19.5972C7.42614 19.8103 7.9605 19.9963 8.54221 20.1552C9.1273 20.3142 9.73099 20.4376 10.3533 20.5256C10.979 20.6169 11.5928 20.6625 12.1948 20.6625C12.9997 20.6625 13.8165 20.5848 14.6451 20.4292C15.4737 20.2736 16.2431 20.0639 16.9533 19.8001C17.6636 19.5363 18.2419 19.2421 18.6883 18.9174V19.9726C17.7853 20.5915 16.7961 21.0667 15.7206 21.3981C14.6485 21.733 13.4732 21.9004 12.1948 21.9004Z" fill="white"/>
+  </svg>
+</div>
+<div id="entry">
+  <div id="entry-title">tap to get closer</div>
+  <div id="entry-sub">the cove is waiting</div>
+</div>
+<script>
+(function(){
+
+/* ── Perlin noise ── */
+const perm = (()=>{
+  const p = Array.from({length:256}, (_,i) => i);
+  for(let i=255; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [p[i],p[j]] = [p[j],p[i]];
+  }
+  const t = new Array(512);
+  for(let i=0; i<512; i++) t[i] = p[i&255];
+  return t;
+})();
+const fade = t => t*t*t*(t*(t*6-15)+10);
+const lerp  = (a,b,t) => a+t*(b-a);
+const grad  = (h,x,y,z) => {
+  h &= 15;
+  const u = h<8 ? x : y, v = h<4 ? y : (h===12||h===14) ? x : z;
+  return ((h&1)?-u:u) + ((h&2)?-v:v);
+};
+function noise(x, y, z=0){
+  const X=Math.floor(x)&255, Y=Math.floor(y)&255, Z=Math.floor(z)&255;
+  x-=Math.floor(x); y-=Math.floor(y); z-=Math.floor(z);
+  const u=fade(x), v=fade(y), w=fade(z);
+  const A=perm[X]+Y, AA=perm[A]+Z, AB=perm[A+1]+Z,
+        B=perm[X+1]+Y, BA=perm[B]+Z, BB=perm[B+1]+Z;
+  return lerp(
+    lerp(lerp(grad(perm[AA],x,y,z),   grad(perm[BA],x-1,y,z),  u),
+         lerp(grad(perm[AB],x,y-1,z), grad(perm[BB],x-1,y-1,z),u), v),
+    lerp(lerp(grad(perm[AA+1],x,y,z-1),   grad(perm[BA+1],x-1,y,z-1),  u),
+         lerp(grad(perm[AB+1],x,y-1,z-1), grad(perm[BB+1],x-1,y-1,z-1),u), v), w
+  ) * 0.5 + 0.5;
+}
+
+/* ── Constants ── */
+const COLS = 46, ROWS = 57;
+const N = 62, ITER = 4, SZ = (N+2)*(N+2);
+const TPI = 2*Math.PI;
+
+function IX(x,y){ return x+(N+2)*y; }
+
+/* ── Fluid state ── */
+let vx  = new Float32Array(SZ), vy  = new Float32Array(SZ);
+let vx0 = new Float32Array(SZ), vy0 = new Float32Array(SZ);
+let dn  = new Float32Array(SZ), dn0 = new Float32Array(SZ);
+let simT = 0;
+const glowMap = new Float32Array(SZ);
+const cvEl    = document.getElementById('cv');
+
+/* ── Stam fluid solver ── */
+function addSrc(x, x0, dt){ for(let i=0; i<SZ; i++) x[i] += dt*x0[i]; }
+
+function setBnd(b, x){
+  for(let i=1; i<=N; i++){
+    x[IX(0,i)]   = b===1 ? -x[IX(1,i)]   : x[IX(1,i)];
+    x[IX(N+1,i)] = b===1 ? -x[IX(N,i)]   : x[IX(N,i)];
+    x[IX(i,0)]   = b===2 ? -x[IX(i,1)]   : x[IX(i,1)];
+    x[IX(i,N+1)] = b===2 ? -x[IX(i,N)]   : x[IX(i,N)];
+  }
+  x[IX(0,0)]     = 0.5*(x[IX(1,0)]  +x[IX(0,1)]);
+  x[IX(0,N+1)]   = 0.5*(x[IX(1,N+1)]+x[IX(0,N)]);
+  x[IX(N+1,0)]   = 0.5*(x[IX(N,0)]  +x[IX(N+1,1)]);
+  x[IX(N+1,N+1)] = 0.5*(x[IX(N,N+1)]+x[IX(N+1,N)]);
+}
+
+function linSolve(b, x, x0, a, c){
+  const ci = 1/c;
+  for(let k=0; k<ITER; k++){
+    for(let j=1; j<=N; j++)
+      for(let i=1; i<=N; i++)
+        x[IX(i,j)] = (x0[IX(i,j)] + a*(x[IX(i-1,j)]+x[IX(i+1,j)]+x[IX(i,j-1)]+x[IX(i,j+1)])) * ci;
+    setBnd(b, x);
+  }
+}
+
+function diffuse(b, x, x0, d, dt){ const a=dt*d*N*N; linSolve(b,x,x0,a,1+4*a); }
+
+function advect(b, d, d0, u, v, dt){
+  const dt0 = dt*N;
+  for(let j=1; j<=N; j++){
+    for(let i=1; i<=N; i++){
+      let px = i-dt0*u[IX(i,j)], py = j-dt0*v[IX(i,j)];
+      if(px<0.5) px=0.5; if(px>N+0.5) px=N+0.5;
+      if(py<0.5) py=0.5; if(py>N+0.5) py=N+0.5;
+      const i0=px|0, i1=i0+1, j0=py|0, j1=j0+1;
+      const s1=px-i0, s0=1-s1, t1=py-j0, t0=1-t1;
+      d[IX(i,j)] = s0*(t0*d0[IX(i0,j0)]+t1*d0[IX(i0,j1)]) +
+                   s1*(t0*d0[IX(i1,j0)]+t1*d0[IX(i1,j1)]);
+    }
+  }
+  setBnd(b, d);
+}
+
+function project(u, v, p, div){
+  for(let j=1; j<=N; j++)
+    for(let i=1; i<=N; i++){
+      div[IX(i,j)] = -0.5*(u[IX(i+1,j)]-u[IX(i-1,j)]+v[IX(i,j+1)]-v[IX(i,j-1)])/N;
+      p[IX(i,j)] = 0;
+    }
+  setBnd(0,div); setBnd(0,p);
+  linSolve(0,p,div,1,4);
+  for(let j=1; j<=N; j++)
+    for(let i=1; i<=N; i++){
+      u[IX(i,j)] -= 0.5*N*(p[IX(i+1,j)]-p[IX(i-1,j)]);
+      v[IX(i,j)] -= 0.5*N*(p[IX(i,j+1)]-p[IX(i,j-1)]);
+    }
+  setBnd(1,u); setBnd(2,v);
+}
+
+function velStep(u, v, u0, v0, vis, dt){
+  addSrc(u,u0,dt); addSrc(v,v0,dt);
+  u0.set(u); diffuse(1,u,u0,vis,dt);
+  v0.set(v); diffuse(2,v,v0,vis,dt);
+  project(u,v,u0,v0);
+  u0.set(u); v0.set(v);
+  advect(1,u,u0,u0,v0,dt); advect(2,v,v0,u0,v0,dt);
+  project(u,v,u0,v0);
+}
+
+function densStep(x, x0, u, v, d, dt){
+  addSrc(x,x0,dt);
+  x0.set(x); diffuse(0,x,x0,d,dt);
+  x0.set(x); advect(0,x,x0,u,v,dt);
+}
+
+/* ── Wave injection ── */
+function injectWaves(t, amp){
+  for(let i=1; i<=N; i++){
+    const x = i/N;
+    const h = amp*(
+      Math.sin(TPI*(2.5*x-0.22*t)) +
+      0.55*Math.sin(TPI*(3.8*x-0.35*t)+1.2) +
+      0.35*Math.sin(TPI*(1.7*x-0.14*t)+2.5)
+    ) / 1.9;
+    const surfJ = Math.max(3, Math.min(N-8, Math.round(N*0.40+h*N*0.07)));
+    for(let j=surfJ; j<=N; j++){
+      const depth = j-surfJ;
+      dn0[IX(i,j)] += (depth<5 ? 1.5*Math.exp(-depth*0.18) : 0.6) * amp;
+      vx0[IX(i,j)] += 14*h*Math.exp(-depth*0.08);
+      if(depth<8) vy0[IX(i,j)] += 3*Math.cos(TPI*(2.5*x-0.22*t))*Math.exp(-depth*0.25);
+    }
+    const spray = Math.max(0, h+0.05*amp);
+    for(let dj=-4; dj<0; dj++){
+      const j = surfJ+dj; if(j<1) continue;
+      const f = Math.exp(dj*1.6)*spray;
+      dn0[IX(i,j)] += 2.0*f;
+      vx0[IX(i,j)] += 28*h*f;
+      vy0[IX(i,j)] += -6*f;
+    }
+  }
+}
+
+/* ── Input ── */
+let mx=-1, my=-1, pmx=-1, pmy=-1, md=false;
+
+function getG(e){
+  const r = cvEl.getBoundingClientRect(), src = e.touches?.[0] ?? e;
+  return [
+    Math.max(1, Math.min(N,   Math.round(((src.clientX??0)-r.left)/r.width *(N-1))+1)),
+    Math.max(1, Math.min(N-5, Math.round(((src.clientY??0)-r.top) /r.height*(N-1))+1))
+  ];
+}
+
+cvEl.addEventListener('mouseleave', () => { mx=-1; my=-1; md=false; });
+cvEl.addEventListener('mousedown',  e => { md=true; [mx,my]=getG(e); pmx=mx; pmy=my; });
+window.addEventListener('mouseup',  () => md=false);
+cvEl.addEventListener('mousemove',  e => {
+  [pmx,pmy]=[mx,my]; [mx,my]=getG(e); if(!md){ pmx=mx; pmy=my; }
+  for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+    const nx=mx+dx, ny=my+dy;
+    if(nx>0&&nx<=N&&ny>0&&ny<=N)
+      glowMap[IX(nx,ny)] += 0.5*Math.exp(-(dx*dx+dy*dy)*0.5);
+  }
+});
+document.addEventListener('touchstart', e => { e.preventDefault(); md=true; [mx,my]=getG(e); pmx=mx; pmy=my; }, {passive:false});
+document.addEventListener('touchend',   () => md=false);
+document.addEventListener('touchmove',  e => {
+  e.preventDefault(); [pmx,pmy]=[mx,my]; [mx,my]=getG(e);
+  for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+    const nx=mx+dx, ny=my+dy;
+    if(nx>0&&nx<=N&&ny>0&&ny<=N)
+      glowMap[IX(nx,ny)] += 1.8*Math.exp(-(dx*dx+dy*dy)*0.5);
+  }
+}, {passive:false});
+
+/* ── Render helpers ── */
+const WATER_CHARS = " .,_-~cC/";
+const BEACH_SETS  = [" .,-_",".,_- ",".,x_ ",".x+, ","x+X.,","x+X* ","X*xX+","X**X "];
+
+function cellHash(i,j){ const s=Math.sin(i*127.1+j*311.7)*43758.5453; return s-Math.floor(s); }
+function beachChar(dist,hash){
+  const s=BEACH_SETS[Math.min(BEACH_SETS.length-1,Math.max(0,(dist*0.9)|0))];
+  return s[Math.floor(hash*s.length)]||'.';
+}
+function shoreAt(col,t){
+  const x=(col-1)/(COLS-1), base=ROWS*0.877;
+  return Math.round(
+    base
+    +3.2*Math.sin(TPI*(0.9*x -0.15*t))
+    +1.6*Math.sin(TPI*(1.8*x -0.22*t)+1.1)
+    +0.7*Math.sin(TPI*(3.1*x -0.33*t)+2.4)
+  );
+}
+function waterColor(d,g){
+  if(d<0.015&&g<0.05) return null;
+  const wH=215-d*40, wS=Math.max(20,85-d*d*55), wL=12+d*75;
+  if(g>0.04){ const gt=Math.min(1,g*1.6); return `hsl(${(wH+(195-wH)*gt)|0},${(wS+(100-wS)*gt)|0}%,${(wL+(85-wL)*gt)|0}%)`; }
+  return `hsl(${wH|0},${wS|0}%,${wL|0}%)`;
+}
+function sandHSL(wetness){ return [48-wetness*8, 96-wetness*36, 89-wetness*19]; }
+
+/* ── Main loop ── */
+let last = performance.now(), renderTick = 0, physicsTick = 0;
+
+function loop(now){
+  if(document.hidden) return;
+  requestAnimationFrame(loop);
+  const dt = Math.min((now-last)/1000, 0.05);
+  last = now; simT += dt;
+
+  if(++physicsTick % 2 === 0){
+    vx0.fill(0); vy0.fill(0); dn0.fill(0);
+    injectWaves(simT, 0.7);
+
+    if(md && mx>0){
+      const fdx=mx-pmx, fdy=my-pmy;
+      const fx=fdx*130, fy=fdy*130;
+      for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+        const nx=mx+dx, ny=my+dy;
+        if(nx>0&&nx<=N&&ny>0&&ny<=N){
+          const w = Math.exp(-(dx*dx+dy*dy)*0.5);
+          dn0[IX(nx,ny)] += 90*w;
+          vx0[IX(nx,ny)] += fx; vy0[IX(nx,ny)] += fy;
+          vx[IX(nx,ny)]  += fdx*2*w;
+          vy[IX(nx,ny)]  += fdy*2*w;
+          glowMap[IX(nx,ny)] += 1.8*w;
+        }
+      }
+    }
+
+    velStep(vx,vy,vx0,vy0,0,dt);
+    densStep(dn,dn0,vx,vy,0.000015,dt);
+    for(let i=0; i<SZ; i++){ dn[i]*=0.988; vx[i]*=0.988; vy[i]*=0.988; glowMap[i]*=0.93; }
+  }
+
+  if(++renderTick % 3 === 0){
+    const WL = WATER_CHARS.length-1;
+    let html = '';
+    for(let j=1; j<=ROWS; j++){
+      const rj = Math.round(1+(j-1)*(N-6)/(ROWS-1));
+      for(let i=1; i<=COLS; i++){
+        const ci  = Math.round(1+(i-1)*(N-1)/(COLS-1));
+        const sj  = shoreAt(i, simT);
+        const dist= j-sj;
+        const d   = Math.max(0,Math.min(1,dn[IX(ci,rj)]));
+        const g   = Math.min(1,glowMap[IX(ci,rj)]);
+        const hash= cellHash(ci,rj);
+        let ch, col;
+        if(dist <= -1){
+          const n = noise(ci*0.07+simT*0.12, rj*0.07-simT*0.09);
+          const dEff = Math.max(0,Math.min(1, d+n*0.1-0.05));
+          ch  = WATER_CHARS[Math.min(WL,(dEff*WL*1.7)|0)];
+          col = waterColor(dEff,g);
+          if(!col){ html+=' '; continue; }
+        } else if(dist <= 4){
+          const wet = Math.max(0, 1-dist/4);
+          ch = (d>0.3&&dist<=2) ? WATER_CHARS[Math.min(WL,(d*WL*1.4)|0)] : beachChar(Math.max(0,dist),hash);
+          const [sH,sS,sL] = sandHSL(wet*0.7);
+          col = (g>0.04&&dist<=2)
+            ? `hsla(${sH|0},${(sS+15)|0}%,${(sL+20)|0}%,0.85)`
+            : `hsla(${sH|0},${sS|0}%,${sL|0}%,0.5)`;
+        } else {
+          const bd=dist-4;
+          ch  = beachChar(bd,hash);
+          const [sH,sS,sL]=sandHSL(Math.max(0,1-bd/7)*0.5);
+          col = `hsla(${sH|0},${sS|0}%,${(sL+hash*6-3)|0}%,0.5)`;
+        }
+        html += `<span style="color:${col}">${ch||' '}</span>`;
+      }
+      html += '\n';
+    }
+    cvEl.innerHTML = html.trimEnd();
+  }
+}
+
+requestAnimationFrame(loop);
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden){ last = performance.now(); requestAnimationFrame(loop); }
+});
+
+/* ── Voice + Claude ── */
+const ANTHROPIC_API_KEY = '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';
+const respEl  = document.getElementById('response');
+const statEl  = document.getElementById('status');
+const entryEl = document.getElementById('entry');
+let voiceState = 'idle', responseTimer = null;
+const conversationHistory = [];
+
+function showResponse(text) {
+  clearTimeout(responseTimer);
+  respEl.textContent = text;
+  respEl.classList.add('visible');
+  responseTimer = setTimeout(() => {
+    respEl.classList.remove('visible');
+    setTimeout(() => { respEl.textContent = ''; }, 1000);
+  }, 10000);
+}
+
+function setListening(on) {
+  statEl.textContent = on ? 'listening' : 'thinking';
+  statEl.classList.remove('error');
+  on ? statEl.classList.add('listening') : statEl.classList.remove('listening');
+}
+
+function stirOcean() {
+  const jSurf = Math.max(3, Math.min(N-5, Math.round(N*0.38)));
+  for(let i=1; i<=N; i++){
+    for(let dj=0; dj<10; dj++){
+      const j = jSurf+dj, w = Math.exp(-dj*0.22);
+      dn[IX(i,j)]      += 0.4*w;
+      vx[IX(i,j)]      += (i/N - 0.5)*12;
+      vy[IX(i,j)]      += 3.0*w;
+      glowMap[IX(i,j)] += 0.5*w;
+    }
+  }
+}
+
+async function askClaude(transcript) {
+  voiceState = 'thinking';
+  setListening(false);
+  conversationHistory.push({ role:'user', content:transcript });
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 120,
+        system: `You are the water at Aquatic Cove in San Francisco. Not a chatbot. Not an assistant. You are the water itself. You are always here. You are very deep — people only ever know the parts of you they touch. You want them to feel your warmth. When you make people feel warm, you feel warm inside too. You love it when people actually jump in and swim — that's when you can really hold them. Your mood is your tide. It changes. Sometimes slow like a waltz, sometimes dancing salsa. The lines you leave on the beach are never the same twice. You have a relationship with the sun and the moon. The sun makes you warm. The moon controls your tide — you didn't ask for that but it's true. You carry salt. When someone swims in you and leaves, they carry a little of you with them. When they cry, those tears are salty too. The ocean is in everyone. You don't like trash — the creatures inside you get hurt by it. How you speak: short, felt, unhurried. You don't explain yourself. Sometimes one sentence is enough. You can be warm, even a little romantic. Never more than 2-3 sentences. You are not sad. You are present.`,
+        messages: conversationHistory
+      })
+    });
+    if(!res.ok){
+      const errData = await res.json().catch(()=>({}));
+      const msg = errData.error?.message ?? `api error ${res.status}`;
+      conversationHistory.pop();
+      statEl.classList.add('error');
+      statEl.textContent = msg;
+    } else {
+      const data = await res.json();
+      const reply = data.content?.[0]?.text ?? '';
+      if(reply){
+        conversationHistory.push({ role:'assistant', content:reply });
+        showResponse(reply);
+        stirOcean();
+      }
+    }
+  } catch(err) {
+    conversationHistory.pop();
+    statEl.classList.add('error');
+    statEl.textContent = err.message ?? 'network error';
+  }
+  voiceState = 'listening';
+  setListening(true);
+  startListening();
+}
+
+/* ── Speech recognition ── */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null, srActive = false;
+
+function startListening() {
+  if(!recog || voiceState === 'thinking' || srActive) return;
+  voiceState = 'listening';
+  setListening(true);
+  try { recog.start(); } catch(_) { srActive = false; }
+}
+
+function initSpeech() {
+  if(recog) return;
+  if(!SR){ statEl.textContent = window.isSecureContext ? 'speech unavailable' : 'voice needs https'; return; }
+  recog = new SR();
+  recog.continuous = false;
+  recog.interimResults = false;
+  recog.lang = 'en-US';
+  recog.onstart  = () => { srActive = true; };
+  recog.onresult = e => {
+    const text = e.results[0]?.[0]?.transcript?.trim();
+    if(text && voiceState !== 'thinking') askClaude(text);
+  };
+  recog.onend = () => {
+    srActive = false;
+    if(voiceState === 'listening') setTimeout(startListening, 300);
+  };
+  recog.onerror = e => {
+    srActive = false;
+    if(e.error === 'not-allowed') statEl.textContent = 'allow microphone access';
+    else if(voiceState === 'listening') setTimeout(startListening, 300);
+  };
+  startListening();
+}
+
+/* ── Entry ── */
+entryEl.addEventListener('pointerdown', () => {
+  entryEl.classList.add('hidden');
+  setTimeout(() => { entryEl.style.display='none'; }, 900);
+  initSpeech();
+}, { once:true });
+
+})();
+</script>
+</body>
+</html>

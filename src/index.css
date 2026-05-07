@@ -1,0 +1,494 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 390px;
+  height: 100dvh;
+  overflow: hidden;
+  background: #04101e;
+}
+
+body { position: relative; }
+
+#root {
+  position: relative;
+  width: 390px;
+  height: 100dvh;
+}
+
+/* z-index 1 */
+#cv {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 390px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  line-height: 1.0;
+  padding: 0 8px;
+  white-space: pre;
+  cursor: crosshair;
+  user-select: none;
+  font-family: monospace;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* z-index 15 */
+.response-text {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  padding: 0 28px;
+  text-align: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: transparent;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  transition: color 0.9s ease;
+  pointer-events: none;
+}
+.response-text.visible {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* z-index 15 */
+.status-text {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 15;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  transition: color 0.4s ease;
+  pointer-events: none;
+}
+
+@keyframes listening-glow {
+  0%, 100% {
+    text-shadow: 0 0 6px rgba(100, 220, 255, 0.25);
+    opacity: 0.55;
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(100, 220, 255, 0.9), 0 0 28px rgba(100, 220, 255, 0.35);
+    opacity: 0.9;
+  }
+}
+
+.status-text.listening {
+  color: rgba(100, 220, 255, 0.55);
+  animation: listening-glow 2.5s ease-in-out infinite;
+}
+
+.status-text.error {
+  color: rgba(255, 160, 120, 0.85);
+  animation: none;
+}
+
+/* z-index 20 */
+.entry-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 390px;
+  height: 100dvh;
+  z-index: 20;
+  background: rgba(4, 16, 30, 0.82);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: opacity 0.8s ease;
+}
+
+.entry-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.entry-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.entry-sub {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/* z-index 30 */
+.settings-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 30;
+  opacity: 0.35;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 0;
+}
+
+.settings-btn:hover {
+  opacity: 0.75;
+}
+
+/* ── #cv dimmed while schedule panel is open ─────────────────────────────── */
+#cv.dimmed {
+  opacity: 0.35;
+  transition: opacity 0.45s ease;
+}
+#cv:not(.dimmed) {
+  transition: opacity 0.45s ease;
+}
+
+/* ── Invite confirmation toast ───────────────────────────────────────────── */
+.invite-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  background: rgba(10, 18, 26, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 13px 22px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.invite-toast.visible { opacity: 1; }
+.invite-toast-label {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.invite-toast-text {
+  display: block;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Schedule panel ─────────────────────────────────────────────────────── */
+.schedule-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 390px;
+  height: 92dvh;
+  background: rgba(10, 18, 26, 0.97);
+  border-radius: 20px 20px 0 0;
+  z-index: 40;
+  transform: translateY(100%);
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.88);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.schedule-panel.open {
+  transform: translateY(0);
+}
+.schedule-panel > .sp-section:first-child {
+  padding-top: 20px;
+}
+
+/* Floating back button — rendered in App.tsx outside the panel's transform context,
+   aligns with the settings button (both at top: 10px from viewport). */
+.sp-back-floating {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 45;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 4px;
+  letter-spacing: 0.03em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1;
+}
+.sp-back-floating:hover { color: rgba(255, 255, 255, 0.85); }
+
+.sp-section {
+  padding: 10px 20px;
+}
+
+.sp-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+
+/* Calendar */
+.sp-month-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.sp-month-label {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.sp-month-btns {
+  display: flex;
+  gap: 4px;
+}
+.sp-month-btns button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.sp-month-btns button:hover { background: rgba(255, 255, 255, 0.08); }
+
+.sp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.sp-weekdays span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.04em;
+  padding: 4px 0;
+}
+
+.sp-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.sp-day {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sp-day:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.sp-day-sel {
+  background: #3b82f6 !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+.sp-day-past {
+  color: rgba(255, 255, 255, 0.2);
+  cursor: default;
+}
+
+/* Info rows */
+.sp-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+.sp-info-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.03em;
+}
+.sp-info-value {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.sp-time-input {
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  outline: none;
+  color-scheme: dark;
+}
+.sp-time-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.75);
+  cursor: pointer;
+}
+
+/* Friends */
+.sp-section-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sp-friends-scroll {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  scrollbar-width: none;
+}
+.sp-friends-scroll::-webkit-scrollbar { display: none; }
+
+.sp-avatar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.sp-avatar-circle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: hsl(var(--avatar-hue, 210), 45%, 28%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease;
+  overflow: hidden;
+}
+.sp-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sp-avatar-sel .sp-avatar-circle {
+  border-color: #3b82f6;
+}
+.sp-avatar-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.02em;
+}
+.sp-avatar-sel .sp-avatar-name {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.sp-add-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: flex-start;
+  transition: background 0.15s ease;
+}
+.sp-add-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+.sp-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+.sp-add-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+}
+.sp-add-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+.sp-add-input:focus { border-color: rgba(59, 130, 246, 0.5); }
+.sp-add-save {
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+.sp-add-save:hover { background: rgba(59, 130, 246, 0.4); }
+
+.sp-error {
+  padding: 0 20px 4px;
+  font-size: 12px;
+  color: rgba(255, 160, 120, 0.85);
+}
+
+/* Confirm button — sits below scrollable content */
+.sp-confirm-area {
+  padding: 12px 20px 28px;
+  flex-shrink: 0;
+}
+.sp-confirm-btn {
+  width: 100%;
+  height: 52px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s ease;
+}
+.sp-confirm-btn:hover { opacity: 0.88; }
+.sp-confirm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
