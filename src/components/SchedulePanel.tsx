@@ -152,6 +152,7 @@ export default function SchedulePanel({
 
   return (
     <div className={`schedule-panel${open ? ' open' : ''}`}>
+      <div className="sp-scroll-body">
       {/* Calendar */}
       <div className="sp-section">
         <div className="sp-month-nav">
@@ -263,6 +264,7 @@ export default function SchedulePanel({
 
       {/* Error */}
       {error && <p className="sp-error">{error}</p>}
+      </div>{/* end sp-scroll-body */}
 
       {/* Confirm */}
       <div className="sp-confirm-area">
