@@ -492,8 +492,8 @@ body { position: relative; }
 .sp-confirm-btn {
   width: 100%;
   height: 52px;
-  background: #3b82f6;
-  border: none;
+  background: #0C161E;
+  border: 0.5px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   font-family: 'Instrument Serif', serif;
   font-style: italic;
