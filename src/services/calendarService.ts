@@ -1,10 +1,7 @@
 import type { Friend } from '../data/friends';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
-const SCOPES = [
-  'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/gmail.send',
-].join(' ');
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
 function getAccessToken(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -69,57 +66,8 @@ async function createCalendarEvent(token: string, date: Date, timeStr: string, f
   }
 }
 
-function encodeEmail(to: string, subject: string, body: string): string {
-  const mime = [
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=utf-8',
-    '',
-    body,
-  ].join('\r\n');
-  return btoa(unescape(encodeURIComponent(mime)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-async function sendGmailInvite(token: string, friend: Friend, date: Date, timeStr: string): Promise<void> {
-  const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  const [hh, mm] = timeStr.split(':').map(Number);
-  const ampm = hh >= 12 ? 'PM' : 'AM';
-  const h12 = hh % 12 || 12;
-  const timeDisplay = `${h12}:${String(mm).padStart(2, '0')} ${ampm}`;
-
-  const subject = `Swim at Aquatic Cove — ${dateStr}`;
-  const body = [
-    `Hey ${friend.name}!`,
-    '',
-    `I'd love for you to join me for a swim at Aquatic Cove in San Francisco.`,
-    '',
-    `Date: ${dateStr}`,
-    `Time: ${timeDisplay}`,
-    `Location: Aquatic Cove, San Francisco, CA`,
-    '',
-    `The ocean's been perfect lately. Hope to see you there.`,
-  ].join('\n');
-
-  const res = await fetch(
-    'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raw: encodeEmail(friend.email, subject, body) }),
-    }
-  );
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { error?: { message?: string } };
-    throw new Error(err.error?.message ?? `Gmail API error ${res.status}`);
-  }
-}
 
 export async function createSwimEvent(date: Date, timeStr: string, friends: Friend[]): Promise<void> {
   const token = await getAccessToken();
   await createCalendarEvent(token, date, timeStr, friends);
-  await Promise.all(friends.map(f => sendGmailInvite(token, f, date, timeStr)));
 }
