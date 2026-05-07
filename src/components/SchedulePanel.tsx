@@ -273,7 +273,7 @@ export default function SchedulePanel({
           onClick={handleConfirm}
           disabled={confirming}
         >
-          {confirming ? 'Booking…' : 'Confirm'}
+          {confirming ? 'Sending…' : 'Invite'}
         </button>
       </div>
     </div>

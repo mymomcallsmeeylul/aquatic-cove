@@ -250,6 +250,9 @@ body { position: relative; }
 .sp-section {
   padding: 10px 20px;
 }
+.sp-scroll-body > .sp-section:last-of-type {
+  padding-bottom: 0;
+}
 
 .sp-divider {
   height: 1px;
@@ -482,7 +485,7 @@ body { position: relative; }
 
 /* Confirm button — sits below scrollable content */
 .sp-confirm-area {
-  padding: 12px 20px max(28px, env(safe-area-inset-bottom));
+  padding: 0 20px max(20px, env(safe-area-inset-bottom));
   flex-shrink: 0;
 }
 .sp-confirm-btn {
@@ -491,8 +494,10 @@ body { position: relative; }
   background: #3b82f6;
   border: none;
   border-radius: 14px;
-  font-size: 16px;
-  font-weight: 600;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 20px;
+  font-weight: 400;
   color: #fff;
   cursor: pointer;
   letter-spacing: 0.02em;
