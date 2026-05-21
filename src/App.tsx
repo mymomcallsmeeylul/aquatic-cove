@@ -395,14 +395,32 @@ export default function App() {
         showResponse(reply);
         stirOcean(simState.current);
       }
-    } catch (err) {
+       } catch (err) {
       history.current.pop();
-      const msg = err instanceof Error ? err.message : 'network error';
-      const isAuthErr = msg.toLowerCase().includes('auth') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('401');
-      setStatusText(isAuthErr ? 'api key error — check vercel env vars' : msg);
+      let raw = err instanceof Error ? err.message : 'network error';
+
+      // Anthropic SDK errors arrive as "400 {...json...}" — extract the human message
+      let displayMsg = raw;
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed?.error?.message) displayMsg = parsed.error.message;
+        }
+      } catch { /* keep raw */ }
+
+      const isFatal =
+        displayMsg.toLowerCase().includes('credit') ||
+        displayMsg.toLowerCase().includes('billing') ||
+        displayMsg.toLowerCase().includes('auth') ||
+        displayMsg.toLowerCase().includes('api key') ||
+        displayMsg.toLowerCase().includes('401') ||
+        displayMsg.toLowerCase().includes('403');
+
+      setStatusText(isFatal ? displayMsg : 'the tide went quiet. trying again.');
       setStatusClass('error');
-      if (isAuthErr) return; // don't retry on auth failure
-      // Show error briefly then resume
+
+      if (isFatal) return;
       if (!scheduleOpenRef.current) {
         setTimeout(() => {
           voiceState.current = 'listening';
