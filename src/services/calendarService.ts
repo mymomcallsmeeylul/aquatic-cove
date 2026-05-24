@@ -5,6 +5,10 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
 function getAccessToken(): Promise<string> {
   return new Promise((resolve, reject) => {
+    if (!CLIENT_ID) {
+      reject(new Error('Google Client ID not configured. Add VITE_GOOGLE_CLIENT_ID to .env.local and restart the dev server.'));
+      return;
+    }
     if (!window.google?.accounts?.oauth2) {
       reject(new Error('Google Identity Services not loaded'));
       return;

@@ -5,6 +5,7 @@
 html, body {
   width: 390px;
   height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
   background: #04101e;
 }
@@ -15,6 +16,7 @@ body { position: relative; }
   position: relative;
   width: 390px;
   height: 100dvh;
+  min-height: 100vh;
 }
 
 /* z-index 1 */
@@ -149,6 +151,410 @@ body { position: relative; }
 
 .settings-btn:hover {
   opacity: 0.75;
+}
+
+.settings-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.drawer-backdrop {
+  /* anchor to the app root/canvas rather than the viewport */
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 10, 18, 0.45);
+  z-index: 98;
+  pointer-events: auto;
+}
+
+.resource-drawer {
+  /* position inside `#root` so drawer slides from the right edge of the fluid canvas */
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  min-height: 100%;
+  /* keep drawer narrower than half the mobile frame */
+  width: min(42%, 170px);
+  background: rgba(6, 15, 27, 0.98);
+  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.28);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 99;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-y: auto;
+}
+
+.resource-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.system-diagram-page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 1000;
+  max-width: 390px;
+  width: 100%;
+  height: 100%;
+  transform: translateX(-50%);
+  background: rgba(4, 16, 30, 0.96);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.system-diagram-shell {
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.system-diagram-close {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.system-diagram-frame {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(10, 18, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  touch-action: none;
+}
+
+.system-diagram-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  will-change: transform;
+}
+
+.system-diagram-image:active {
+  cursor: grabbing;
+}
+
+.page-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 1000;
+  max-width: 390px;
+  width: 100%;
+  height: 100%;
+  transform: translateX(-50%);
+  background: rgba(4, 16, 30, 0.96);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.page-shell {
+  width: 100%;
+  height: 100%;
+  max-width: 390px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.page-close,
+.kb-close {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.94);
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.page-box {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(6, 15, 27, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.page-title,
+.knowledge-base-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.page-scroll,
+.knowledge-base-scroll {
+  overflow-y: auto;
+  padding-right: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.page-scroll p,
+.knowledge-base-scroll p {
+  margin: 0 0 0.9em;
+}
+
+.page-input,
+.kb-custom-input,
+.sa-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+.page-input::placeholder {
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.page-button,
+.kb-save-btn,
+.sa-send-btn {
+  min-height: 44px;
+  background: rgba(59, 130, 246, 0.24);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  color: rgba(255, 255, 255, 0.94);
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.page-button:hover:not(:disabled),
+.sa-send-btn:hover:not(:disabled),
+.kb-save-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.38);
+}
+
+.page-button.saved,
+.page-button.sent,
+.kb-save-btn.saved {
+  background: rgba(34, 197, 94, 0.24);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.page-button:disabled,
+.kb-save-btn:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.page-section-label,
+.sa-label {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.kb-close {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.94);
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.knowledge-base-box {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(6, 15, 27, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.knowledge-base-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Solo Agent Tests styles */
+.solo-tests-page {
+  position: relative;
+}
+
+.solo-tests-shell {
+  color: rgba(255,255,255,0.92);
+}
+
+.st-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.st-title { font-size:20px; margin:0; font-weight:600; }
+
+.st-body { display:flex; flex-direction:column; gap:28px; }
+.sa-section { display:flex; flex-direction:column; gap:12px; }
+.sa-label { font-family: 'Instrument Serif', serif; font-style: italic; font-size:16px; color: rgba(255,255,255,0.92); }
+.sa-box { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px; }
+.sa-system { height: 160px; overflow-y: auto; }
+.sa-output { height: 160px; overflow-y: auto; }
+
+.sa-input-row { display:flex; gap:10px; align-items:center; }
+.sa-input { flex:1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius:18px; padding:10px 14px; color: rgba(255,255,255,0.94); outline:none; }
+.sa-send-btn { background: rgba(59,130,246,0.24); border: 1px solid rgba(59,130,246,0.45); color: white; padding:10px 14px; border-radius:16px; cursor:pointer; }
+.sa-loading { color: rgba(255,255,255,0.78); opacity:0.9; }
+
+/* --- Agent output formatting --- */
+.sa-formatted-output { display:flex; flex-direction:column; gap:8px; }
+.sa-out-freshness { font-size:11px; color:rgba(255,255,255,0.38); letter-spacing:0.03em; margin-bottom:2px; }
+.sa-out-row { display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.45; }
+.sa-out-label { color:rgba(255,255,255,0.44); min-width:84px; flex-shrink:0; }
+.sa-out-value { color:rgba(255,255,255,0.92); }
+.sa-text-output { font-size:14px; line-height:1.6; color:rgba(255,255,255,0.92); margin:0; }
+.sa-out-error { font-size:13px; color:rgba(255,100,100,0.9); }
+
+.sa-verdict { font-size:18px; font-weight:700; letter-spacing:0.08em; margin-bottom:4px; }
+.sa-verdict-safe   { color:#4ade80; }
+.sa-verdict-caution { color:#fbbf24; }
+.sa-verdict-avoid  { color:#f87171; }
+
+.sa-sched-title { font-size:15px; font-weight:600; color:rgba(255,255,255,0.96); margin-bottom:2px; }
+.sa-conflict { font-size:13px; color:#fbbf24; margin-top:4px; }
+
+.sa-out-felt { font-size:12px; color:rgba(255,255,255,0.55); letter-spacing:0.02em; }
+.sa-out-divider { height:1px; background:rgba(255,255,255,0.07); margin:4px 0; }
+.sa-best-header { font-size:14px; font-weight:600; color:rgba(255,255,255,0.96); letter-spacing:0.01em; }
+.sa-best-unknown { font-style:italic; opacity:0.65; }
+
+.knowledge-base-scroll {
+  height: 50vh;
+  overflow-y: auto;
+  padding-right: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.knowledge-base-scroll p {
+  margin: 0 0 0.9em;
+}
+
+.kb-custom-label {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+}
+
+.kb-custom-input {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 14px 16px;
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+}
+
+.kb-custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.kb-save-btn {
+  width: 100%;
+  min-height: 44px;
+  background: rgba(59, 130, 246, 0.24);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.kb-save-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.38);
+}
+
+.kb-save-btn.saved {
+  background: rgba(34, 197, 94, 0.24);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.kb-save-btn:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.drawer-option {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.94);
+  padding: 12px 14px;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.drawer-option:hover,
+.drawer-option:focus-visible {
+  background: rgba(255, 255, 255, 0.11);
+  transform: translateX(2px);
 }
 
 /* ── #cv dimmed while schedule panel is open ─────────────────────────────── */

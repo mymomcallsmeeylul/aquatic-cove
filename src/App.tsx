@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { askOcean, type Message } from './services/beachAgentService';
 import SchedulePanel from './components/SchedulePanel';
+import SystemDiagramPage from './components/SystemDiagramPage';
+import KnowledgeBasePage from './components/KnowledgeBasePage';
+import SoloAgentTests from './components/SoloAgentTests';
 import { loadFriends, type Friend } from './data/friends';
 import { createSwimEvent } from './services/calendarService';
 
@@ -342,6 +345,14 @@ export default function App() {
   const [scheduleDate,    setScheduleDate]    = useState<Date | undefined>(undefined);
   const [schedulePreFrds, setSchedulePreFrds] = useState<string[]>([]);
 
+  // Resource drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [systemDiagramOpen, setSystemDiagramOpen] = useState(false);
+  const [knowledgeBaseOpen, setKnowledgeBaseOpen] = useState(false);
+  const [knowledgeBasePersonalization, setKnowledgeBasePersonalization] = useState('');
+  const [knowledgeBaseSaved, setKnowledgeBaseSaved] = useState(false);
+  const [soloTestsOpen, setSoloTestsOpen] = useState(false);
+
   // Invite confirmation toast
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [toastMounted,  setToastMounted]  = useState(false);
@@ -361,6 +372,48 @@ export default function App() {
       setResponseVis(false);
       setTimeout(() => setResponseText(''), 1000);
     }, 10000);
+  }, []);
+
+  const handleDrawerToggle = useCallback(() => {
+    setDrawerOpen((open) => !open);
+  }, []);
+
+  const handleDrawerClose = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
+
+  const handleDrawerOptionSelect = useCallback((option: string) => {
+    if (option === 'Plan a Dip') {
+      setDrawerOpen(false);
+      setScheduleOpen(true);
+      return;
+    }
+    if (option === 'System Diagram') {
+      setDrawerOpen(false);
+      setSystemDiagramOpen(true);
+      return;
+    }
+    if (option === 'Knowledge Base') {
+      setDrawerOpen(false);
+      setKnowledgeBaseOpen(true);
+      return;
+    }
+    if (option === 'Solo Agent Tests') {
+      setDrawerOpen(false);
+      setSoloTestsOpen(true);
+      return;
+    }
+    console.log('Resource selected:', option);
+    setDrawerOpen(false);
+  }, []);
+
+  const handleKnowledgeBasePersonalizationChange = useCallback((value: string) => {
+    setKnowledgeBasePersonalization(value);
+    setKnowledgeBaseSaved(false);
+  }, []);
+
+  const handleKnowledgeBaseSave = useCallback(() => {
+    setKnowledgeBaseSaved(true);
   }, []);
 
   const startListening = useCallback(() => {
@@ -695,11 +748,47 @@ export default function App() {
         initialDate={scheduleDate}
         preselectedFriends={schedulePreFrds}
       />
-      <button className="settings-btn" aria-label="Settings">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1.52192 11.8052C1.52192 10.5268 1.68764 9.35153 2.01907 8.27942C2.3539 7.20394 2.83076 6.21469 3.44968 5.31169H4.50487C4.26136 5.64651 4.03308 6.05912 3.82001 6.54951C3.61032 7.03653 3.426 7.57258 3.26705 8.15767C3.10809 8.73938 2.98295 9.34138 2.89164 9.96368C2.80371 10.586 2.75974 11.1998 2.75974 11.8052C2.75974 12.6101 2.83753 13.4269 2.9931 14.2555C3.14867 15.0841 3.35836 15.8535 3.62216 16.5637C3.88596 17.2739 4.18019 17.8523 4.50487 18.2987H3.44968C2.83076 17.3957 2.3539 16.4081 2.01907 15.336C1.68764 14.2606 1.52192 13.0836 1.52192 11.8052ZM11.7099 17.1623C10.9726 17.1623 10.2793 17.0237 9.62992 16.7463C8.98395 16.469 8.41408 16.0852 7.9203 15.5948C7.42991 15.101 7.04436 14.5311 6.76365 13.8851C6.48632 13.2392 6.34935 12.5459 6.35273 11.8052C6.35611 11.0645 6.49647 10.3712 6.77379 9.72524C7.0545 9.07927 7.44005 8.51109 7.93045 8.0207C8.42084 7.52692 8.98903 7.14137 9.63499 6.86404C10.281 6.58672 10.9726 6.44805 11.7099 6.44805C12.4505 6.44805 13.1439 6.58672 13.7898 6.86404C14.4392 7.14137 15.0074 7.52692 15.4944 8.0207C15.9848 8.51109 16.3686 9.07927 16.646 9.72524C16.9233 10.3712 17.0636 11.0645 17.067 11.8052C17.0704 12.5459 16.9334 13.2392 16.6561 13.8851C16.3788 14.5311 15.9949 15.101 15.5045 15.5948C15.0141 16.0852 14.4442 16.469 13.7949 16.7463C13.1455 17.0237 12.4505 17.1623 11.7099 17.1623ZM11.7099 15.9854C12.2882 15.9854 12.831 15.8772 13.3383 15.6607C13.8456 15.4443 14.2904 15.145 14.6725 14.7628C15.0547 14.3806 15.354 13.9376 15.5705 13.4336C15.7869 12.9263 15.8934 12.3852 15.8901 11.8103C15.8867 11.2319 15.7768 10.6891 15.5603 10.1818C15.3439 9.67451 15.0446 9.22978 14.6624 8.84761C14.2802 8.46544 13.8372 8.16613 13.3332 7.94968C12.8293 7.73323 12.2882 7.625 11.7099 7.625C11.1349 7.625 10.5955 7.73323 10.0916 7.94968C9.58765 8.16613 9.1446 8.46713 8.76243 8.85268C8.38026 9.23485 8.07926 9.67959 7.85943 10.1869C7.64298 10.6908 7.53306 11.2319 7.52968 11.8103C7.5263 12.3818 7.63283 12.9213 7.84928 13.4286C8.06573 13.9325 8.36504 14.3755 8.74721 14.7577C9.13276 15.1399 9.5775 15.4409 10.0814 15.6607C10.5887 15.8772 11.1315 15.9854 11.7099 15.9854ZM21.9004 11.8052C21.9004 13.0836 21.733 14.2606 21.3981 15.336C21.0667 16.4081 20.5915 17.3957 19.9726 18.2987H18.9174C19.1609 17.9639 19.3875 17.5513 19.5972 17.0609C19.8103 16.5739 19.9963 16.0395 20.1552 15.4578C20.3142 14.8727 20.4376 14.269 20.5256 13.6467C20.6169 13.021 20.6625 12.4072 20.6625 11.8052C20.6625 11.0003 20.5848 10.1835 20.4292 9.35491C20.2736 8.52631 20.0639 7.7569 19.8001 7.04667C19.5363 6.33644 19.2421 5.75812 18.9174 5.31169H19.9726C20.5915 6.21469 21.0667 7.20394 21.3981 8.27942C21.733 9.35153 21.9004 10.5268 21.9004 11.8052Z" fill="white"/>
-          <path d="M12.1948 1.52192C13.4732 1.52192 14.6485 1.68764 15.7206 2.01907C16.7961 2.3539 17.7853 2.83076 18.6883 3.44968V4.50487C18.3535 4.26136 17.9409 4.03308 17.4505 3.82001C16.9635 3.61032 16.4274 3.426 15.8423 3.26705C15.2606 3.10809 14.6586 2.98295 14.0363 2.89164C13.414 2.80371 12.8002 2.75974 12.1948 2.75974C11.3899 2.75974 10.5731 2.83753 9.74452 2.9931C8.91592 3.14867 8.14651 3.35836 7.43628 3.62216C6.72606 3.88596 6.14773 4.18019 5.7013 4.50487V3.44968C6.6043 2.83076 7.59186 2.3539 8.66396 2.01907C9.73945 1.68764 10.9164 1.52192 12.1948 1.52192ZM6.83766 11.7099C6.83766 10.9726 6.97633 10.2793 7.25365 9.62992C7.53098 8.98395 7.91484 8.41408 8.40524 7.9203C8.89901 7.42991 9.46889 7.04436 10.1149 6.76365C10.7608 6.48632 11.4541 6.34935 12.1948 6.35273C12.9355 6.35611 13.6288 6.49647 14.2748 6.77379C14.9207 7.0545 15.4889 7.44005 15.9793 7.93045C16.4731 8.42084 16.8586 8.98903 17.136 9.63499C17.4133 10.281 17.5519 10.9726 17.5519 11.7099C17.5519 12.4505 17.4133 13.1439 17.136 13.7898C16.8586 14.4392 16.4731 15.0074 15.9793 15.4944C15.4889 15.9848 14.9207 16.3686 14.2748 16.646C13.6288 16.9233 12.9355 17.0636 12.1948 17.067C11.4541 17.0704 10.7608 16.9334 10.1149 16.6561C9.46889 16.3788 8.89901 15.9949 8.40524 15.5045C7.91484 15.0141 7.53098 14.4442 7.25365 13.7949C6.97633 13.1455 6.83766 12.4505 6.83766 11.7099ZM8.01461 11.7099C8.01461 12.2882 8.12284 12.831 8.33929 13.3383C8.55574 13.8456 8.85505 14.2904 9.23722 14.6725C9.61939 15.0547 10.0624 15.354 10.5664 15.5705C11.0737 15.7869 11.6148 15.8934 12.1897 15.8901C12.7681 15.8867 13.3109 15.7768 13.8182 15.5603C14.3255 15.3439 14.7702 15.0446 15.1524 14.6624C15.5346 14.2802 15.8339 13.8372 16.0503 13.3332C16.2668 12.8293 16.375 12.2882 16.375 11.7099C16.375 11.1349 16.2668 10.5955 16.0503 10.0916C15.8339 9.58765 15.5329 9.1446 15.1473 8.76243C14.7652 8.38026 14.3204 8.07926 13.8131 7.85943C13.3092 7.64298 12.7681 7.53306 12.1897 7.52968C11.6182 7.5263 11.0787 7.63283 10.5714 7.84928C10.0675 8.06573 9.62446 8.36504 9.24229 8.74721C8.86012 9.13276 8.55912 9.5775 8.33929 10.0814C8.12284 10.5887 8.01461 11.1315 8.01461 11.7099ZM12.1948 21.9004C10.9164 21.9004 9.73945 21.733 8.66396 21.3981C7.59186 21.0667 6.6043 20.5915 5.7013 19.9726V18.9174C6.03612 19.1609 6.44873 19.3875 6.93912 19.5972C7.42614 19.8103 7.9605 19.9963 8.54221 20.1552C9.1273 20.3142 9.73099 20.4376 10.3533 20.5256C10.979 20.6169 11.5928 20.6625 12.1948 20.6625C12.9997 20.6625 13.8165 20.5848 14.6451 20.4292C15.4737 20.2736 16.2431 20.0639 16.9533 19.8001C17.6636 19.5363 18.2419 19.2421 18.6883 18.9174V19.9726C17.7853 20.5915 16.7961 21.0667 15.7206 21.3981C14.6485 21.733 13.4732 21.9004 12.1948 21.9004Z" fill="white"/>
-        </svg>
+      {drawerOpen && <div className="drawer-backdrop" onClick={handleDrawerClose} />}
+      <div className={`resource-drawer${drawerOpen ? ' open' : ''}`} aria-hidden={!drawerOpen}>
+        <div className="drawer-header">Resources</div>
+        <button type="button" className="drawer-option" onClick={() => handleDrawerOptionSelect('Plan a Dip')}>
+          Plan a Dip
+        </button>
+        <button type="button" className="drawer-option" onClick={() => handleDrawerOptionSelect('System Diagram')}>
+          System Diagram
+        </button>
+        <button type="button" className="drawer-option" onClick={() => handleDrawerOptionSelect('Knowledge Base')}>
+          Knowledge Base
+        </button>
+        <button type="button" className="drawer-option" onClick={() => handleDrawerOptionSelect('Solo Agent Tests')}>
+          Solo Agent Tests
+        </button>
+      </div>
+      {knowledgeBaseOpen && (
+        <KnowledgeBasePage
+          onClose={() => setKnowledgeBaseOpen(false)}
+          personalization={knowledgeBasePersonalization}
+          saved={knowledgeBaseSaved}
+          onSave={handleKnowledgeBaseSave}
+          onPersonalizationChange={handleKnowledgeBasePersonalizationChange}
+        />
+      )}
+      {soloTestsOpen && (
+        <SoloAgentTests onClose={() => setSoloTestsOpen(false)} />
+      )}
+      {systemDiagramOpen && (
+        <SystemDiagramPage onClose={() => setSystemDiagramOpen(false)} />
+      )}
+      <button className="settings-btn" aria-label="Open resources" aria-expanded={drawerOpen} onClick={handleDrawerToggle}>
+        <img
+          src="/Aquatic-Cove-Icon.svg"
+          alt="Open resources"
+          className="settings-icon"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = 'data:image/svg+xml,%3Csvg%20width%3D%22128%22%20height%3D%22128%22%20viewBox%3D%220%200%20128%20128%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2224%22%20fill%3D%22%2304101E%22%20/%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2242%22%20r%3D%2218%22%20fill%3D%22%23FFE066%22%20opacity%3D%220.94%22%20/%3E%3Cpath%20d%3D%22M18%2086C28%2072%2038%2066%2054%2066C70%2066%2078%2076%2096%2074C114%2072%20120%2058%20110%2050%22%20stroke%3D%22%236DD5FA%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20/%3E%3Cpath%20d%3D%22M18%20100C28%2088%2040%2088%2054%2088C70%2088%2080%2096%2096%2094C112%2092%20122%2080%20110%2074%22%20stroke%3D%22%236DD5FA%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20/%3E%3Cpath%20d%3D%22M22%20110C34%20100%2044%20100%2056%20100C70%20100%2078%20106%2096%20104C114%20102%20120%2092%20110%2088%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.24)%22%20stroke-width%3D%2210%22%20stroke-linecap%3D%22round%22%20/%3E%3C/svg%3E';
+          }}
+        />
       </button>
     </>
   );
