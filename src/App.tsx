@@ -261,12 +261,21 @@ function shoreAt(col: number, t: number): number {
   );
 }
 
-function waterColor(d: number, g: number): string | null {
+function tempToGlowHSL(tempF: number): [number, number, number] {
+  if (tempF < 50) return [210, 100, 55];
+  if (tempF < 55) return [200,  85, 70];
+  if (tempF < 62) return [210,  20, 92];
+  if (tempF < 70) return [ 48,  80, 88];
+  if (tempF < 80) return [ 30, 100, 60];
+  return [15, 100, 55];
+}
+
+function waterColor(d: number, g: number, glowH: number, glowS: number, glowL: number): string | null {
   if (d < 0.015 && g < 0.05) return null;
   const wH = 215 - d * 40, wS = Math.max(20, 85 - d * d * 55), wL = 12 + d * 75;
   if (g > 0.04) {
     const gt = Math.min(1, g * 1.6);
-    return `hsl(${(wH + (195 - wH) * gt) | 0},${(wS + (100 - wS) * gt) | 0}%,${(wL + (85 - wL) * gt) | 0}%)`;
+    return `hsl(${(wH + (glowH - wH) * gt) | 0},${(wS + (glowS - wS) * gt) | 0}%,${(wL + (glowL - wL) * gt) | 0}%)`;
   }
   return `hsl(${wH | 0},${wS | 0}%,${wL | 0}%)`;
 }
@@ -276,7 +285,7 @@ function sandHSL(wetness: number): [number, number, number] {
 }
 
 // ── Render ASCII fluid to #cv innerHTML ───────────────────────────────────────
-function renderFluid(s: SimState, cvEl: HTMLDivElement) {
+function renderFluid(s: SimState, cvEl: HTMLDivElement, glowH: number, glowS: number, glowL: number) {
   const WL = WATER_CHARS.length - 1;
   let html = '';
   for (let j = 1; j <= ROWS; j++) {
@@ -293,7 +302,7 @@ function renderFluid(s: SimState, cvEl: HTMLDivElement) {
         const n    = noise(ci * 0.07 + s.t * 0.12, rj * 0.07 - s.t * 0.09);
         const dEff = Math.max(0, Math.min(1, d + n * 0.1 - 0.05));
         ch  = WATER_CHARS[Math.min(WL, (dEff * WL * 1.7) | 0)];
-        col = waterColor(dEff, g);
+        col = waterColor(dEff, g, glowH, glowS, glowL);
         if (!col) { html += ' '; continue; }
       } else if (dist <= 4) {
         const wet = Math.max(0, 1 - dist / 4);
@@ -323,6 +332,8 @@ export default function App() {
   const simState = useRef<SimState>(initSim());
   const rafRef  = useRef(0);
   const lastRef = useRef(performance.now());
+  // fallback: hsl(210, 20%, 92%) — white with slight blue tint (55–62°F range)
+  const glowHSLRef = useRef<[number, number, number]>([210, 20, 92]);
 
   // Voice
   const voiceState  = useRef<'idle' | 'listening' | 'thinking'>('idle');
@@ -556,6 +567,13 @@ export default function App() {
     setEntryHidden(true);
     setTimeout(() => setEntryMounted(false), 900);
     initSpeech();
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=37.8074&longitude=-122.4230&current=temperature_2m&temperature_unit=fahrenheit')
+      .then(r => r.json())
+      .then((data: { current?: { temperature_2m?: number } }) => {
+        const tempF = data.current?.temperature_2m;
+        if (tempF != null) glowHSLRef.current = tempToGlowHSL(tempF);
+      })
+      .catch(() => {});
   }, [initSpeech]);
 
   // ── Pointer → fluid coords ───────────────────────────────────────────────────
@@ -693,7 +711,8 @@ export default function App() {
 
       s.renderTick++;
       if (s.renderTick % 3 === 0 && cvRef.current) {
-        renderFluid(s, cvRef.current);
+        const [gH, gS, gL] = glowHSLRef.current;
+        renderFluid(s, cvRef.current, gH, gS, gL);
       }
     }
 
